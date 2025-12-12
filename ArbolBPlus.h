@@ -26,6 +26,7 @@ public:
     ArbolBPlus(int orden);
     ~ArbolBPlus();
 
+
     NodoGrafo* buscarNodo(int clave);
     NodoBPlusHoja* buscarHoja(int clave);
 

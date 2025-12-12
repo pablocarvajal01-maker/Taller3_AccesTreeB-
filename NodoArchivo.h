@@ -7,25 +7,24 @@
 
 #include "NodoGrafo.h"
 
-// guarda tamaño y tipo del archivo
-// un archivo no puede tener hijos por lo que no implementa listas de hijos
-
 class NodoArchivo : public NodoGrafo {
 private:
+    string nombre;
     int tamano;
-    int tipo;        // tipo de archivo por ejemplo 0 imagen 1 documento etc
+    int tipo;
 
 public:
-    NodoArchivo(int id, int tamano, int tipo);
+    NodoArchivo(int id, string nombre, int tamano, int tipo = 0);
 
     ~NodoArchivo();
 
-    // metodo que indica que no es un directorio
     bool esDirectorio() override { return false; }
 
     int getTamano();
 
     int getTipo();
+
+    string getNombre() override { return nombre; }
 };
 
 #endif //TALLER___NODOARCHIVO_H

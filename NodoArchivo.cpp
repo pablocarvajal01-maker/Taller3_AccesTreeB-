@@ -3,8 +3,8 @@
 //
 #include "NodoArchivo.h"
 
-NodoArchivo::NodoArchivo(int id, int tamano, int tipo)
-    : NodoGrafo(id), tamano(tamano), tipo(tipo) {}
+NodoArchivo::NodoArchivo(int id, string nombre, int tamano, int tipo)
+    : NodoGrafo(id), nombre(nombre), tamano(tamano), tipo(tipo) {}
 
 NodoArchivo::~NodoArchivo() {}
 

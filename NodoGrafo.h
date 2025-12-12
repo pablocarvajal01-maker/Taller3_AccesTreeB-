@@ -10,16 +10,17 @@ class ListaPadres;
 class NodoGrafo {
 protected:
     int id;
-    ListaPadres* padres; // lista enlazada que guarda los ids de todos los nodos que son padres de este nodo
+    ListaPadres* padres;
 
 public:
     NodoGrafo(int id);
     virtual ~NodoGrafo();
 
-    int getId(); // retorna el id del nodo
-    ListaPadres* getPadres(); // retorna la lista de padres del nodo
+    int getId();
+    ListaPadres* getPadres();
 
-    virtual bool esDirectorio() = 0; // metodo para saber si el nodo representa un directorio o un archivo
+    virtual bool esDirectorio() = 0;
+    virtual string getNombre() = 0;
 };
 
 // nodo de una lista enlazada que guarda el id de un padre

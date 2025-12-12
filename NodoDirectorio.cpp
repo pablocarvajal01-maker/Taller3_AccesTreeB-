@@ -3,13 +3,15 @@
 //
 #include "NodoDirectorio.h"
 
-NodoDirectorio::NodoDirectorio(int id) : NodoGrafo(id) {
+NodoDirectorio::NodoDirectorio(int id, string nombre) : NodoGrafo(id), nombre(nombre) {
     hijos = new ListaHijos();
 }
 
 NodoDirectorio::~NodoDirectorio() {
     delete hijos;
 }
+
+
 
 ListaHijos* NodoDirectorio::getHijos() {
     return hijos;
@@ -19,6 +21,6 @@ void NodoDirectorio::agregarHijo(int idHijo) {
     hijos->agregar(idHijo);
 }
 
-void NodoDirectorio::eliminarHijo(int idHijo) {
+bool NodoDirectorio::eliminarHijo(int idHijo) {
     hijos->eliminar(idHijo);
 }

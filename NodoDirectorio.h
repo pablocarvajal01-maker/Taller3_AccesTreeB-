@@ -3,37 +3,29 @@
 
 #include "NodoGrafo.h"
 
-// declaramos para evitar
 class NodoHijo;
 class ListaHijos;
 
 
 class NodoDirectorio : public NodoGrafo {
 private:
-    // lista de ids de los hijos que contiene este directorio
+    string nombre;
     ListaHijos* hijos;
 
 public:
-    // constructor, inicializa el directorio con su id
-    NodoDirectorio(int id);
+    NodoDirectorio(int id, string nombre);
 
-    // destructor, libera la lista de hijos
     ~NodoDirectorio();
-
-    // un directorio SIEMPRE es un directorio
     bool esDirectorio() override { return true; }
 
-    // retorna la lista de hijos
     ListaHijos* getHijos();
 
-    // agrega un hijo" solo el id por ahora?
     void agregarHijo(int idHijo);
 
-    // elimina un hijo de la lista por id
-    void eliminarHijo(int idHijo);
-};
+    bool eliminarHijo(int idHijo);
 
-//   lista enlazada de hijos
+    string getNombre() override { return nombre; }
+};
 
 
 // nodo individual de la lista de hijos

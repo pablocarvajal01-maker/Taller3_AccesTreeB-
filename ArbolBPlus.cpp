@@ -9,7 +9,7 @@ using namespace std;
 ArbolBPlus::ArbolBPlus(int orden) {
     this->orden = orden;
     this->accesos = 0;
-    this->raiz = new NodoBPlusHoja(orden); // el arbol parte con una sola hoja
+    this->raiz = new NodoBPlusHoja(orden);
 }
 
 ArbolBPlus::~ArbolBPlus() {
@@ -42,7 +42,7 @@ NodoBPlusHoja* ArbolBPlus::buscarHoja(int clave) {
         }
 
         NodoBPlusBase* hijo = interno->getHijo(pos);
-        hijo->setPadre(interno); // Asegura que el puntero al padre esté bien
+        hijo->setPadre(interno);
         actual = hijo;
     }
 
@@ -77,7 +77,7 @@ void ArbolBPlus::insertarEnHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato)
 
     int i = hoja->getNumClaves() - 1;
 
-    // correr claves a la derecha
+
     while(i >= 0 && hoja->getClave(i) > clave) {
         hoja->setClave(i + 1, hoja->getClave(i));
         hoja->setDato(i + 1, hoja->getDato(i));
@@ -91,22 +91,17 @@ void ArbolBPlus::insertarEnHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato)
 }
 
 void ArbolBPlus::splitHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato) {
-
-    NodoBPlusHoja* nuevaHoja = new NodoBPlusHoja(orden);
-
     int maxTotal = orden + 1;
     int* tempClaves = new int[maxTotal];
     NodoGrafo** tempDatos = new NodoGrafo*[maxTotal];
 
     int total = hoja->getNumClaves();
 
-    // copiar a un arreglo temporal
     for(int i = 0; i < total; i++) {
         tempClaves[i] = hoja->getClave(i);
         tempDatos[i] = hoja->getDato(i);
     }
 
-    // insertar clave nueva en el temporal
     int i = total - 1;
     while(i >= 0 && tempClaves[i] > clave) {
         tempClaves[i + 1] = tempClaves[i];
@@ -119,32 +114,33 @@ void ArbolBPlus::splitHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato) {
     total++;
 
     int mitad = total / 2;
-    int claveProm = tempClaves[mitad]; // La clave que sube es la primera de la nueva hoja
 
     hoja->setNumClaves(0);
-
-    // recargar primera mitad en el nodo original
     for(int j = 0; j < mitad; j++) {
         hoja->setClave(j, tempClaves[j]);
         hoja->setDato(j, tempDatos[j]);
         hoja->incrementarNumClaves();
     }
 
-    // recargar segunda mitad en la nueva hoja
+    NodoBPlusHoja* nuevaHoja = new NodoBPlusHoja(orden);
+    int claveProm;
+
     for(int j = mitad; j < total; j++) {
         nuevaHoja->setClave(j - mitad, tempClaves[j]);
         nuevaHoja->setDato(j - mitad, tempDatos[j]);
         nuevaHoja->incrementarNumClaves();
     }
 
+    claveProm = nuevaHoja->getClave(0);
+
     nuevaHoja->setSiguiente(hoja->getSiguiente());
     hoja->setSiguiente(nuevaHoja);
+
 
     delete[] tempClaves;
     delete[] tempDatos;
 
 
-    // caso raiz
     if(raiz == hoja) {
         NodoBPlusInterno* nuevaRaiz = new NodoBPlusInterno(orden);
         nuevaRaiz->setClave(0, claveProm);
@@ -159,9 +155,9 @@ void ArbolBPlus::splitHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato) {
         return;
     }
 
-    // si hay raiz interna, split interno
     splitInterno((NodoBPlusInterno*)hoja->getPadre(), claveProm, nuevaHoja);
 }
+
 
 void ArbolBPlus::splitInterno(NodoBPlusInterno* interno, int claveProm, NodoBPlusBase* nuevoHijo) {
     int totalClavesTemp = interno->getNumClaves() + 1;
