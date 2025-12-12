@@ -9,6 +9,9 @@
 #include "NodoBPlusInterno.h"
 #include "NodoBPlusHoja.h"
 
+// forward declaration
+class NodoGrafo;
+
 class ArbolBPlus {
 
 private:
@@ -16,21 +19,23 @@ private:
     int orden;
     int accesos;
 
+    void arreglarHoja(NodoBPlusHoja* hoja);
+    void arreglarInterno(NodoBPlusInterno* interno);
+
 public:
     ArbolBPlus(int orden);
     ~ArbolBPlus();
 
-    //  BUSQUEDA
     NodoGrafo* buscarNodo(int clave);
     NodoBPlusHoja* buscarHoja(int clave);
 
-    //  INSERCIÓN
     void insertar(int clave, NodoGrafo* dato);
     void insertarEnHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato);
     void splitHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato);
     void splitInterno(NodoBPlusInterno* interno, int claveProm, NodoBPlusBase* nuevoHijo);
 
-    //  UTILIDADES
+    void eliminar(int clave);
+
     void reiniciarAccesos();
     int getAccesos();
     NodoBPlusBase* getRaiz();

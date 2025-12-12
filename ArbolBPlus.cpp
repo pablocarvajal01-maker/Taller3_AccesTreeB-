@@ -5,6 +5,7 @@
 #include <iostream>
 using namespace std;
 
+
 ArbolBPlus::ArbolBPlus(int orden) {
     this->orden = orden;
     this->accesos = 0;
@@ -27,6 +28,7 @@ int ArbolBPlus::getAccesos() {
     return accesos;
 }
 
+
 NodoBPlusHoja* ArbolBPlus::buscarHoja(int clave) {
     NodoBPlusBase* actual = raiz;
 
@@ -35,12 +37,12 @@ NodoBPlusHoja* ArbolBPlus::buscarHoja(int clave) {
         NodoBPlusInterno* interno = (NodoBPlusInterno*) actual;
 
         int pos = 0;
-        while(pos < interno->getNumClaves() && clave >= interno->getClave(pos)) {
+        while(pos < interno->getCantidadClaves() && clave >= interno->getClave(pos)) {
             pos++;
         }
 
         NodoBPlusBase* hijo = interno->getHijo(pos);
-        hijo->setPadre(interno);
+        hijo->setPadre(interno); // Asegura que el puntero al padre esté bien
         actual = hijo;
     }
 
@@ -59,6 +61,7 @@ NodoGrafo* ArbolBPlus::buscarNodo(int clave) {
 
     return nullptr;
 }
+
 
 void ArbolBPlus::insertar(int clave, NodoGrafo* dato) {
     NodoBPlusHoja* hoja = buscarHoja(clave);
@@ -161,8 +164,6 @@ void ArbolBPlus::splitHoja(NodoBPlusHoja* hoja, int clave, NodoGrafo* dato) {
 }
 
 void ArbolBPlus::splitInterno(NodoBPlusInterno* interno, int claveProm, NodoBPlusBase* nuevoHijo) {
-
-
     int totalClavesTemp = interno->getNumClaves() + 1;
     int* tempClaves = new int[totalClavesTemp];
     NodoBPlusBase** tempHijos = new NodoBPlusBase*[totalClavesTemp + 1];
@@ -230,9 +231,7 @@ void ArbolBPlus::splitInterno(NodoBPlusInterno* interno, int claveProm, NodoBPlu
     delete[] tempHijos;
 
 
-
-
-    // caso raiz.
+    // caso raiz
     if (interno == raiz) {
         NodoBPlusInterno* nuevaRaiz = new NodoBPlusInterno(orden);
         nuevaRaiz->setClave(0, claveAscendente);
@@ -255,5 +254,163 @@ void ArbolBPlus::splitInterno(NodoBPlusInterno* interno, int claveProm, NodoBPlu
     } else {
         nuevoInterno->setPadre(padreInterno);
         padreInterno->insertarClaveYHijo(claveAscendente, nuevoInterno);
+    }
+}
+
+
+
+void ArbolBPlus::eliminar(int clave) {
+    NodoBPlusHoja* hoja = buscarHoja(clave);
+    accesos++;
+
+
+    int pos = -1;
+    for (int i = 0; i < hoja->getNumClaves(); i++) {
+        if(hoja->getClave(i) == clave) {
+            pos = i;
+            break;
+        }
+    }
+
+    if (pos == -1) {
+        return;
+    }
+
+    hoja->removerClaveDato(pos);
+
+    int minClaves = orden / 2;
+    if (hoja->getNumClaves() < minClaves) {
+        arreglarHoja(hoja);
+    }
+}
+
+void ArbolBPlus::arreglarHoja(NodoBPlusHoja* hoja) {
+    if (hoja == raiz) {
+        // Caso 1: La raíz se ha quedado vacía
+        if (hoja->getNumClaves() == 0) {
+            delete raiz;
+            raiz = nullptr;
+        }
+        return;
+    }
+
+    NodoBPlusInterno* padre = (NodoBPlusInterno*)hoja->getPadre();
+    int minClaves = orden / 2;
+
+    int indexEnPadre = -1;
+    for (int i = 0; i <= padre->getCantidadClaves(); i++) {
+        if (padre->getHijo(i) == hoja) {
+            indexEnPadre = i;
+            break;
+        }
+    }
+
+    NodoBPlusHoja* hermanoIzq = nullptr;
+    NodoBPlusHoja* hermanoDer = nullptr;
+
+    if (indexEnPadre > 0) {
+        hermanoIzq = (NodoBPlusHoja*)padre->getHijo(indexEnPadre - 1);
+    }
+    if (indexEnPadre < padre->getCantidadClaves()) {
+        hermanoDer = (NodoBPlusHoja*)padre->getHijo(indexEnPadre + 1);
+    }
+
+
+    if (hermanoIzq != nullptr && hermanoIzq->getNumClaves() > minClaves) {
+        hermanoIzq->prestarDeDerecha(hoja, indexEnPadre - 1);
+        return;
+    }
+
+    if (hermanoDer != nullptr && hermanoDer->getNumClaves() > minClaves) {
+        hoja->prestarDeIzquierda(hermanoDer, indexEnPadre);
+        return;
+    }
+
+
+    if (hermanoIzq != nullptr) {
+        hermanoIzq->fusionarConHermanoDerecho(hoja, indexEnPadre - 1);
+
+        if (padre->getCantidadClaves() < minClaves - 1) {
+            arreglarInterno(padre);
+        }
+        return;
+    }
+
+    else if (hermanoDer != nullptr) {
+        hoja->fusionarConHermanoDerecho(hermanoDer, indexEnPadre);
+
+        if (padre->getCantidadClaves() < minClaves - 1) {
+            arreglarInterno(padre);
+        }
+        return;
+    }
+}
+
+
+void ArbolBPlus::arreglarInterno(NodoBPlusInterno* interno) {
+    if (interno == raiz) {
+        if (interno->getCantidadClaves() == 0) {
+            raiz = interno->getHijo(0);
+            if (raiz) raiz->setPadre(nullptr);
+            delete interno;
+        }
+        return;
+    }
+
+    NodoBPlusInterno* padre = (NodoBPlusInterno*)interno->getPadre();
+    int minClaves = orden / 2;
+
+    if (interno->getCantidadClaves() >= minClaves) {
+        return;
+    }
+
+    int indexEnPadre = -1;
+    for (int i = 0; i <= padre->getCantidadClaves(); i++) {
+        if (padre->getHijo(i) == interno) {
+            indexEnPadre = i;
+            break;
+        }
+    }
+
+    NodoBPlusInterno* hermanoIzq = nullptr;
+    NodoBPlusInterno* hermanoDer = nullptr;
+
+    if (indexEnPadre > 0) {
+        hermanoIzq = (NodoBPlusInterno*)padre->getHijo(indexEnPadre - 1);
+    }
+    if (indexEnPadre < padre->getCantidadClaves()) {
+        hermanoDer = (NodoBPlusInterno*)padre->getHijo(indexEnPadre + 1);
+    }
+
+
+    if (hermanoIzq != nullptr && hermanoIzq->getCantidadClaves() > minClaves) {
+        hermanoIzq->prestarDeDerechaInterno(interno, indexEnPadre - 1);
+        return;
+    }
+
+    if (hermanoDer != nullptr && hermanoDer->getCantidadClaves() > minClaves) {
+        interno->prestarDeIzquierdaInterno(hermanoDer, indexEnPadre);
+        return;
+    }
+
+
+    if (hermanoIzq != nullptr) {
+        hermanoIzq->fusionarConHermanoDerechoInterno(interno, indexEnPadre - 1);
+
+
+        if (padre->getCantidadClaves() < minClaves) {
+            arreglarInterno(padre);
+        }
+        return;
+    }
+
+
+    else if (hermanoDer != nullptr) {
+        interno->fusionarConHermanoDerechoInterno(hermanoDer, indexEnPadre);
+
+        if (padre->getCantidadClaves() < minClaves) {
+            arreglarInterno(padre);
+        }
+        return;
     }
 }

@@ -12,9 +12,9 @@ class NodoBPlusInterno;
 
 class NodoBPlusInterno : public NodoBPlusBase {
 private:
-    int* claves;               // arreglo de claves
+    int* claves;
     NodoBPlusBase** hijos;     // arreglo de punteros a nodos hijos
-    int cantidadClaves;        // cuántas claves están en uso
+    int cantidadClaves;
     int orden;                 // m
 
 public:
@@ -38,10 +38,13 @@ public:
     void mostrar();
 
 
+    void removerClaveHijo(int posClave, int posHijo);
 
+    void prestarDeIzquierdaInterno(NodoBPlusInterno* hermano_izquierdo, int indexClavePadre);
+    void prestarDeDerechaInterno(NodoBPlusInterno* hermano_derecho, int indexClavePadre);
+
+    void fusionarConHermanoDerechoInterno(NodoBPlusInterno* hermano_derecho, int indexClavePadre);
 
 };
-
-
 
 #endif //TALLER___NODOBPLUSINTERNO_H
