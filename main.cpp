@@ -7,6 +7,7 @@
 #include "NodoGrafo.h"
 #include "NodoDirectorio.h"
 #include "NodoArchivo.h"
+#include <queue>
 using namespace std;
 
 
@@ -19,7 +20,7 @@ void errorMenu(int &opcion) {
         if (cin.fail()) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Ingrese un numero válido: ";
+            cout << "Ingrese un numero valido: ";
         } else {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             break;
@@ -41,15 +42,15 @@ void insertarClave() {
     errorMenu(id_nodo);
 
     if (arbol->buscarNodo(id_nodo) != nullptr) {
-        cout << "Error: Ya existe un nodo con el ID " << id_nodo << ". No se puede insertar.\n";
+        cout << "Error: Ya existe un nodo con el ID " << id_nodo << ". No se puede insertar. Use la Opcion 10 para crear un Enlace Duro.\n";
         return;
     }
 
-    cout << "¿El nodo es (1) Directorio o (2) Archivo?: ";
+    cout << "El nodo es (1) Directorio o (2) Archivo?: ";
     errorMenu(tipo);
 
     if (tipo != 1 && tipo != 2) {
-        cout << "Tipo de nodo inválido. Cancelando operación.\n";
+        cout << "Tipo de nodo invalido. Cancelando operacion.\n";
         return;
     }
 
@@ -57,11 +58,11 @@ void insertarClave() {
     getline(cin, nombre);
 
     if (tipo == 2) { // Archivo
-        cout << "Ingrese tamaño del archivo: ";
+        cout << "Ingrese tamano del archivo: ";
         errorMenu(tamano);
     }
 
-    cout << "¿Tiene un Directorio Padre? (0 para No, ID del padre para Sí): ";
+    cout << "Tiene un Directorio Padre inicial? (0 para No, ID del padre para Si): ";
     errorMenu(id_padre);
 
     NodoGrafo* nuevoNodo = nullptr;
@@ -72,14 +73,14 @@ void insertarClave() {
     }
 
     arbol->insertar(id_nodo, nuevoNodo);
-    cout << "\nNodo ID " << id_nodo << " insertado en el Árbol B+.\n";
+    cout << "\nNodo ID " << id_nodo << " insertado en el Arbol B+.\n";
     if (id_padre != 0) {
         NodoGrafo* nodoPadre = arbol->buscarNodo(id_padre);
 
         if (nodoPadre == nullptr) {
-            cout << "Advertencia: ID de padre " << id_padre << " no encontrado. El nodo se creó sin enlace de padre.\n";
+            cout << "Advertencia: ID de padre " << id_padre << " no encontrado. El nodo se creo sin enlace de padre.\n";
         } else if (!nodoPadre->esDirectorio()) {
-            cout << "Advertencia: El nodo padre ID " << id_padre << " no es un Directorio. No se creó el enlace.\n";
+            cout << "Advertencia: El nodo padre ID " << id_padre << " no es un Directorio. No se creo el enlace.\n";
         } else {
             NodoDirectorio* dirPadre = dynamic_cast<NodoDirectorio*>(nodoPadre);
 
@@ -87,7 +88,7 @@ void insertarClave() {
 
             nuevoNodo->getPadres()->agregar(id_padre);
 
-            cout << "Enlace creado: " << nombre << " (" << id_nodo << ") es hijo de " << dirPadre->getNombre() << " (" << id_padre << ").\n";
+            cout << "Enlace PRIMARIO creado: '" << nombre << "' (" << id_nodo << ") es hijo de '" << dirPadre->getNombre() << "' (" << id_padre << ").\n";
         }
     } else {
         cout << "Nodo creado como raiz o sin un padre directo.\n";
@@ -177,6 +178,49 @@ void eliminarEnlace() {
     eliminar_referencia_hijo(id_padre, id_hijo);
 }
 
+void crearEnlace() {
+    int id_padre, id_hijo;
+
+    cout << "\n--- CREAR ENLACE DURO (HARD LINK) ---\n";
+    cout << "Ingrese ID del Directorio Padre (origen del enlace): ";
+    errorMenu(id_padre);
+    cout << "Ingrese ID del Nodo Hijo (destino del enlace): ";
+    errorMenu(id_hijo);
+
+    if (id_padre == id_hijo) {
+        cout << "Error: Un nodo no puede ser padre de si mismo.\n";
+        return;
+    }
+
+
+    NodoGrafo* nodoPadre = arbol->buscarNodo(id_padre);
+    if (nodoPadre == nullptr) {
+        cout << "Error: Directorio Padre ID " << id_padre << " no encontrado.\n";
+        return;
+    }
+    if (!nodoPadre->esDirectorio()) {
+        cout << "Error: El nodo ID " << id_padre << " no es un Directorio.\n";
+        return;
+    }
+    NodoDirectorio* dirPadre = dynamic_cast<NodoDirectorio*>(nodoPadre);
+
+
+    NodoGrafo* nodoHijo = arbol->buscarNodo(id_hijo);
+    if (nodoHijo == nullptr) {
+        cout << "Error: Nodo Hijo ID " << id_hijo << " no encontrado. El enlace duro solo es para nodos ya existentes.\n";
+        return;
+    }
+
+
+    dirPadre->agregarHijo(id_hijo);
+
+    nodoHijo->getPadres()->agregar(id_padre);
+
+    cout << "\nEnlace Duro creado exitosamente!\n";
+    cout << "  Nodo '" << nodoHijo->getNombre() << "' (ID " << id_hijo << ") ahora es hijo de '" << dirPadre->getNombre() << "' (ID " << id_padre << ").\n";
+    cout << "  El conteo de referencias para ID " << id_hijo << " ha aumentado.\n";
+}
+
 
 
 bool esVisitado(int id, int* arr_visitados, int tam) {
@@ -214,7 +258,7 @@ long long calcularEspacioOcupadoRecursivo(int id_actual, int* &visitados, int &n
 
     NodoGrafo* nodo = arbol->buscarNodo(id_actual);
     if (nodo == nullptr) {
-        cout << "Advertencia: Nodo con ID " << id_actual << " encontrado en enlace pero no en Árbol B+.\n";
+        cout << "Advertencia: Nodo con ID " << id_actual << " encontrado en enlace pero no en Arbol B+.\n";
         return 0;
     }
 
@@ -243,7 +287,7 @@ long long calcularEspacioOcupadoRecursivo(int id_actual, int* &visitados, int &n
 void calcularEspacio() {
     int id_directorio;
     cout << "\n--- CALCULAR ESPACIO OCUPADO ---\n";
-    cout << "Ingrese ID del Directorio raíz para iniciar el calculo: ";
+    cout << "Ingrese ID del Directorio raiz para iniciar el calculo: ";
     errorMenu(id_directorio);
 
     NodoGrafo* nodo_raiz = arbol->buscarNodo(id_directorio);
@@ -265,7 +309,7 @@ void calcularEspacio() {
 
     cout << "\n================================================\n";
     cout << "Espacio total ocupado por el Directorio " << id_directorio << " y su subgrafo:\n";
-    cout << espacio << " unidades de tamaño.\n";
+    cout << espacio << " unidades de tamano.\n";
     cout << "Nodos visitados (evitando doble conteo por enlaces): " << num_visitados << endl;
     cout << "================================================\n";
 
@@ -330,6 +374,7 @@ void listarContenido() {
 
     cout << "---------------------------------------------------------\n";
     cout << "Total de elementos listados: " << contador << "\n";
+
 }
 
 
@@ -437,6 +482,66 @@ void eliminarDirectorio() {
 }
 
 
+void encontrarRutasRecursivo(int id_actual, const std::string& camino_a_hijo, std::vector<std::string>& rutas) {
+    NodoGrafo* nodo_actual = arbol->buscarNodo(id_actual);
+    if (nodo_actual == nullptr) return;
+
+    std::string nombre_actual = nodo_actual->getNombre();
+
+
+    std::string ruta_actual;
+    if (camino_a_hijo.empty()) {
+        ruta_actual = nombre_actual;
+    } else {
+        ruta_actual = nombre_actual + "/" + camino_a_hijo;
+    }
+
+
+    if (id_actual == 0 || nodo_actual->getPadres()->getCabeza() == nullptr) {
+        rutas.push_back("/" + ruta_actual);
+        return;
+    }
+
+    NodoPadre* padre_actual = nodo_actual->getPadres()->getCabeza();
+
+    while (padre_actual != nullptr) {
+        encontrarRutasRecursivo(padre_actual->idPadre, ruta_actual, rutas);
+        padre_actual = padre_actual->siguiente;
+    }
+}
+
+void mostrarRutasAClave() {
+    int id_destino;
+    cout << "\n--- MOSTRAR RUTAS AL NODO ---\n";
+    cout << "Ingrese ID del nodo de destino: ";
+    errorMenu(id_destino);
+
+    NodoGrafo* nodo_destino = arbol->buscarNodo(id_destino);
+    if (nodo_destino == nullptr) {
+        cout << "Error: Nodo con ID " << id_destino << " no encontrado.\n";
+        return;
+    }
+
+    std::vector<std::string> rutas_encontradas;
+    std::string nombre_destino = nodo_destino->getNombre();
+
+    encontrarRutasRecursivo(id_destino, "", rutas_encontradas);
+
+    cout << "\n================================================\n";
+    cout << "Rutas posibles al nodo '" << nombre_destino << "' (ID: " << id_destino << "):\n";
+    if (rutas_encontradas.empty()) {
+        cout << "(No se encontraron rutas que terminen en la raiz o nodos sin padre)\n";
+    } else {
+        for (const std::string& ruta : rutas_encontradas) {
+            cout << " - " << ruta << "\n";
+        }
+    }
+    cout << "Total de rutas encontradas: " << rutas_encontradas.size() << endl;
+    cout << "================================================\n";
+}
+
+
+
 void menuArbol() {
     int opcion = 0;
 
@@ -446,11 +551,13 @@ void menuArbol() {
         cout << "2) Buscar clave (Grafo: Acceder Nodo)\n";
         cout << "3) Mostrar hoja raiz \n";
         cout << "4) Mostrar accesos\n";
-        cout << "5) Eliminar Enlace (Grafo) / Nodo Completo\n";
+        cout << "5) Eliminar Enlace / Nodo Completo\n";
         cout << "6) Calcular Espacio Ocupado (DFS)\n";
         cout << "7) Listar Contenido de Directorio\n";
         cout << "8) Eliminar Directorio en Cascada\n";
-        cout << "9) Salir\n";
+        cout << "9) Mostrar Rutas a Nodo\n";
+        cout << "10) Crear Enlace \n";
+        cout << "11) Salir\n";
         cout << "Seleccione: ";
         errorMenu(opcion);
 
@@ -463,11 +570,13 @@ void menuArbol() {
             case 6: calcularEspacio(); break;
             case 7: listarContenido(); break;
             case 8: eliminarDirectorio(); break;
-            case 9: salir(); break;
+            case 9: mostrarRutasAClave(); break;
+            case 10: crearEnlace(); break;
+            case 11: salir(); break;
             default: cout << "Opcion invalida.\n";
         }
 
-    } while(opcion != 9);
+    } while(opcion != 11);
 }
 
 int main() {
